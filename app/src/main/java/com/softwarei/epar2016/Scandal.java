@@ -20,7 +20,10 @@ public class Scandal extends AppCompatActivity{
     private int numScandal, tinyZebra, index, character_index, score, level, speed, delay, vlad;
     boolean recovery;
     int[] position;
+    private MusicPlayer mp;
+    private boolean click = false;
     boolean bold = true;
+    long pauseTime, levelTime;
     private String[] candidates={"Dishonest Abe!","Clinton!","FDR!","Obama!",
                                 "Trump", "Washington", "Kennedy" };
     private String scandalousCand= "";
@@ -87,6 +90,7 @@ public class Scandal extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scandal);
 
+        mp = new MusicPlayer();
         Intent intent = getIntent();
         character_index = intent.getIntExtra("character", 0);
         numScandal = intent.getIntExtra("scandal", 0);
@@ -99,6 +103,8 @@ public class Scandal extends AppCompatActivity{
         position = intent.getIntArrayExtra("position");
         delay = intent.getIntExtra("delay",100);
         vlad = intent.getIntExtra("vlad",0);
+        pauseTime = intent.getLongExtra("pauseTime", System.nanoTime());
+        levelTime = intent.getLongExtra("levelTime", System.nanoTime());
         scandal = (TextView) findViewById(R.id.scandalous);
         candidate= (TextView) findViewById(R.id.scan_candidate);
         scandalousScandal= (TextView) findViewById(R.id.scandalous_scandal);
@@ -135,6 +141,7 @@ public class Scandal extends AppCompatActivity{
             @Override
             public void onClick(View v)
             {
+                click = true;
                 if(tinyZebra == 3)
                 {
                     if(vlad == 0)
@@ -156,6 +163,8 @@ public class Scandal extends AppCompatActivity{
                         deal.putExtra("delay",delay);
                         deal.putExtra("vlad", vlad);
                         //fixed typo
+                        deal.putExtra("pauseTime", pauseTime);
+                        deal.putExtra("levelTime", levelTime);
                         startActivity(deal);
                         finish();
                     }
@@ -190,6 +199,8 @@ public class Scandal extends AppCompatActivity{
                     Main.putExtra("position",position);
                     Main.putExtra("delay",delay);
                     Main.putExtra("vlad", vlad);
+                    Main.putExtra("pauseTime", pauseTime);
+                    Main.putExtra("levelTime", levelTime);
                     startActivity(Main);
                     finish();
                 }
@@ -205,6 +216,8 @@ public class Scandal extends AppCompatActivity{
                     Main.putExtra("recovery",recovery);
                     Main.putExtra("position",position);
                     Main.putExtra("delay",delay);
+                    Main.putExtra("pauseTime", pauseTime);
+                    Main.putExtra("levelTime", levelTime);
                     startActivity(Main);
                     finish();
                 }
@@ -270,5 +283,18 @@ public class Scandal extends AppCompatActivity{
         MainMenu.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(MainMenu);
         finish();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(!click)
+            mp.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startService(new Intent(Scandal.this, MusicPlayer.class));
     }
 }

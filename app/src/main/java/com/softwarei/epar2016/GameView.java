@@ -25,14 +25,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private Sprite sprite;
     private ArrayList<Obstacle> obstacles;
     private Bitmap obstacle, obstacle2, scandal, noScandal;
-    private int scandalCount, index, score, hitCount, level_index, delay, vlad;
-    private Scores scores;
-    private static Context ctx;
+    private int index, score, scandalCount, level_index, delay, vlad;
+    public int hitCount;
+    private Context ctx;
     private Random rand;
     private boolean recovery;
     private int[] position;
 
-    public GameView(Context context, int index, int levels, int scandal, int score, int speed, boolean recovery, int[] position, int delay, int vlad) {
+    public GameView(Context context, int index, int levels, int scandal, int score, int speed, boolean recovery, int[] position, int delay, int vlad, long pauseTime, long levelTime) {
         super(context);
         ctx = context;
         getHolder().addCallback(this);
@@ -45,7 +45,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         this.recovery = recovery;
         this.position = position;
         this.delay = delay;
-        this.vlad =vlad;
+        this.vlad = vlad;
+        this.levelTime = System.nanoTime() - pauseTime + levelTime;
         level = new Level(context, levels);
         rand = new Random();
     }
@@ -53,7 +54,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height){
         obstacleTime = System.nanoTime();
-        levelTime = System.nanoTime();
+        //levelTime = System.nanoTime();
         //System.out.println("surfaceChanged");
     }
 
@@ -90,7 +91,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         gameLoop.setRunning(true);
         gameLoop.start();
         sprite.setPlaying(true);
-        levelTime = System.nanoTime();
+        //levelTime = System.nanoTime();
         //System.out.println("surfaceCreated");
     }
 
@@ -143,7 +144,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         Paint paint = new Paint();
         paint.setColor(Color.WHITE);
         paint.setTextSize(30);
-        //canvas.drawText("Scandal: " + scandalCount, 10, 30, paint);
+        canvas.drawText("Time: " + (int)((System.nanoTime() - levelTime) / 1000000000), 10, 478, paint);
         canvas.drawText("Score: " + sprite.getScore(), 350, 30, paint);
         canvas.drawText("Level: " + level.getLevel(), 350, 478, paint);
 //        if(!sprite.getPlaying()) {
@@ -211,7 +212,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             if(hitCount >= 3 && !sprite.getCollision() && !sprite.getJumping()) {
                 gameLoop.setRunning(false);
                 scandalCount++;
-                Intent scandal = new Intent(GameView.ctx, Scandal.class);
+                Intent scandal = new Intent(ctx, Scandal.class);
                 scandal.putExtra("character",index);
                 scandal.putExtra("scandal",scandalCount);
                 scandal.putExtra("level",level_index);
@@ -221,6 +222,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 scandal.putExtra("position",sprite.getPosition());
                 scandal.putExtra("delay",sprite.getDelay());
                 scandal.putExtra("vlad", vlad);
+                scandal.putExtra("pauseTime", System.nanoTime());
+                scandal.putExtra("levelTime", levelTime);
                 ctx.startActivity(scandal);
             }
         }
